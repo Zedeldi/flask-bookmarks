@@ -99,14 +99,25 @@ def add_bookmark():
 			conn = sqlite3.connect(DATABASE)
 			c = conn.cursor()
 			
-			folder=(request.form['folder'],)
-			# Currently, this returns the first occurrence of 'folder' - if there are multiple folders with the same name, this may cause unexpected results
+			path=request.form['folder'].split('/')
+			title=(path[0],)
+			# Currently, this returns the first occurrence of 'title' - if there are multiple folders with the same name, you should specify an explicit path
 			# TODO: Replace text field with drop-down on template, with parent name as hint => return ID
 			parent=c.execute("""
 				SELECT id
 				FROM moz_bookmarks
-				WHERE title = ?
-				""", folder).fetchone() # Get id of named folder
+				WHERE fk IS NULL
+				AND title = ?
+				""", title).fetchone() # Get id of initial parent
+			for title in path[1:]:
+				t=(title, parent[0]) # Traverse down folder tree
+				parent=c.execute("""
+					SELECT id
+					FROM moz_bookmarks
+					WHERE fk IS NULL
+					AND title = ?
+					AND parent = ?
+					""", t).fetchone() # Find matching child of parent
 			if not parent: raise KeyError # Folder does not exist - TODO: handle folder creation here
 			
 			position=c.execute("""
@@ -137,8 +148,8 @@ def add_bookmark():
 				VALUES (1, ?, ?, ?, ?, ?, ?)
 			""", bookmark) # Add the bookmark
 			conn.commit() # Save changes
-			status = "{0} ({1}) added to {2}.".format(title, url, folder[0])
-		except KeyError:
+			status = "{0} ({1}) added to {2}.".format(title, url, request.form['folder'])
+		except (KeyError, TypeError):
 			status = "Invalid folder name."
 	return render_template('add_bookmark.html', status=status)
 

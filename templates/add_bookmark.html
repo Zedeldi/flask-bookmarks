@@ -6,7 +6,7 @@
       <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
    </head>
    <body class="container">
-      <form class="pt-4" action = "{{ url_for('add_bookmark') }}" method = "POST">
+      <form class="pt-4" action="{{ url_for('add_bookmark') }}" method="POST">
          <h3>Add Bookmark</h3>
          <div class="form-group">
             <label for="title">Title:</label>
@@ -19,6 +19,9 @@
          <div class="form-group">
             <label for="folder">Folder:</label>
             <input type="text" class="form-control" id="folder" name="folder" value="toolbar" required>
+         </div>
+         <div class="alert alert-secondary">
+            <strong>Note:</strong> Folder paths can be separated with '/' — <em>e.g. toolbar/foo/bar</em>
          </div>
          <button type="submit" class="btn btn-primary">Submit</button>
       </form>
