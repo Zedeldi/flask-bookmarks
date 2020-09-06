@@ -1,40 +1,13 @@
 import sqlite3, time
+
 from flask import Flask, request, render_template
 from benedict import benedict
 
+from config import *
+from utils import *
+
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
-
-DATABASE="places.sqlite"
-conn = sqlite3.connect(DATABASE)
-c = conn.cursor()
-if len(c.execute("""
-	SELECT name
-	FROM sqlite_master
-	WHERE type='table'
-	AND name='moz_bookmarks'
-	OR name='moz_places'
-""").fetchall()) != 2: # Check that moz_bookmarks and moz_places exist
-	print("Invalid database.")
-	exit(1)
-else: conn.close()
-
-def export_html(d, fd):
-	for key in d:
-		try: fd.write("""
-	<DT><A HREF="{0}" 
-	ADD_DATE="{1}" 
-	LAST_MODIFIED="{2}">
-	{3}
-	</A>
-		""".format(d[key]['url'], d[key]['date'], d[key]['modified'], d[key]['title']))
-		except KeyError: # d[key] is a folder
-			fd.write("""
-</DL><p>
-<DT><H3>{0}</H3>
-<DL><p>
-			""".format(key))
-			export_html(d[key], fd) # Recursively parse children
 
 @app.route('/')
 def get_bookmarks():
@@ -84,7 +57,7 @@ def get_bookmarks():
 		
 	if use_html:
 		filename="bookmarks{0}.html".format(time.strftime('-%Y-%m-%d', time.localtime()))
-		with open(filename, 'w+') as fd: # Create file descriptor outside of recursive function
+		with open(filename, 'w+') as fd: # Create file descriptor outside of recursive function, overwrites if exists
 			export_html(bookmarks, fd) # Recursively parse JSON and write HTML to file
 			fd.seek(0)
 			return fd.read() # Return the HTML
@@ -99,34 +72,33 @@ def add_bookmark():
 			conn = sqlite3.connect(DATABASE)
 			c = conn.cursor()
 			
-			path=request.form['folder'].split('/')
+			path=request.form['folder'].strip('/').split('/') # Remove leading/trailing slashes
 			title=(path[0],)
 			# Currently, this returns the first occurrence of 'title' - if there are multiple folders with the same name, you should specify an explicit path
 			# TODO: Replace text field with drop-down on template, with parent name as hint => return ID
-			parent=c.execute("""
-				SELECT id
-				FROM moz_bookmarks
-				WHERE fk IS NULL
-				AND title = ?
-				""", title).fetchone() # Get id of initial parent
-			for title in path[1:]:
-				t=(title, parent[0]) # Traverse down folder tree
+			try:
 				parent=c.execute("""
 					SELECT id
 					FROM moz_bookmarks
 					WHERE fk IS NULL
 					AND title = ?
-					AND parent = ?
-					""", t).fetchone() # Find matching child of parent
-			if not parent: raise KeyError # Folder does not exist - TODO: handle folder creation here
+					""", title).fetchone()[0] # Get id of initial parent
+			except TypeError: parent=create_folder(path[0]) # Initial folder does not exist - create it
+			last_parent=parent
+			for title in path[1:]:
+				t=(title, parent) # Traverse down folder tree
+				try:
+					parent=c.execute("""
+						SELECT id
+						FROM moz_bookmarks
+						WHERE fk IS NULL
+						AND title = ?
+						AND parent = ?
+						""", t).fetchone()[0] # Find matching child of parent
+				except TypeError: parent=create_folder(title, last_parent) # Use the last existing folder as its parent
+				last_parent=parent
 			
-			position=c.execute("""
-				SELECT MAX(position)
-				FROM moz_bookmarks
-				WHERE parent = ?
-				""", parent).fetchone()[0]+1 # Get the next position for bookmark within folder
-			
-			parent=parent[0]
+			position=get_next_position(parent)
 			
 			fk=c.execute("SELECT MAX(id) FROM moz_places").fetchone()[0]+1 # Get the next id/foreign key for url reference
 			
@@ -149,8 +121,12 @@ def add_bookmark():
 			""", bookmark) # Add the bookmark
 			conn.commit() # Save changes
 			status = "{0} ({1}) added to {2}.".format(title, url, request.form['folder'])
-		except (KeyError, TypeError):
-			status = "Invalid folder name."
+		except (KeyError, TypeError) as e:
+			status = "Invalid input ({0}).".format(e) # Blame the user
+		except sqlite3.OperationalError as e: # DB is probably locked
+			status = "Database operation error ({0}).".format(e)
 	return render_template('add_bookmark.html', status=status)
 
-if __name__ == "__main__": app.run()
+if __name__ == "__main__":
+	check_database()
+	app.run()
