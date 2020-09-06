@@ -1,11 +1,33 @@
+# flask-bookmarks
+# Copyright (C) 2020  Zack Didcott
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+flask_bookmarks.utils
+
+Various helper functions for database operations and processing.
+"""
+
 import sqlite3, time
-from config import *
+from flask_bookmarks import app
 
 ## DATABASE FUNCTIONS ##
 def check_database():
 	"""Check that the database has necessary tables."""
 	try:
-		conn = sqlite3.connect(DATABASE)
+		conn = sqlite3.connect(app.config['DATABASE'])
 		c = conn.cursor()
 		if len(c.execute("""
 			SELECT name
@@ -23,7 +45,7 @@ def check_database():
 
 def get_next_position(parent):
 	"""Return the next available position in parent."""
-	conn = sqlite3.connect(DATABASE)
+	conn = sqlite3.connect(app.config['DATABASE'])
 	c = conn.cursor()
 	t=(parent,)
 	position=c.execute("""
@@ -44,7 +66,7 @@ def create_folder(title, parent=3): # Default parent is toolbar for Firefox's sa
 	Returns:
 	int: id of the new folder
 	"""
-	conn = sqlite3.connect(DATABASE)
+	conn = sqlite3.connect(app.config['DATABASE'])
 	c = conn.cursor()
 	position=get_next_position(parent)
 	
