@@ -12,16 +12,33 @@ flask-bookmarks uses Firefox's [`places.sqlite`](https://developer.mozilla.org/e
 
 1. Clone this repo: `git clone https://github.com/Zedeldi/flask-bookmarks.git`
 2. Install required Python modules: `pip3 install -r requirements.txt`
-3. Run: `python3 run.py`
+3. Modify `config.py`
+   - `DATABASE` should refer to a valid Firefox `places.sqlite`
+   - Change `SECRET_KEY` in production environments
+4. Run: `python3 run.py` or `python3 run.py waitress`
+
+To run with a standalone WSGI server or behind a HTTP proxy, read this [documentation](https://flask.palletsprojects.com/en/1.1.x/deploying/wsgi-standalone/).
+
+e.g.
+
+ - `gunicorn -b 127.0.0.1:8080 flask_bookmarks:app`
+ - `waitress-serve --listen=127.0.0.1:8080 flask_bookmarks:app`
+
+## Usage
+
+At `/`, bookmarks will be returned in JSON, by default. Pass `?html=True` as a query in the URL to format as HTML.
+
+To add bookmarks through the web interface, go to `/add`.
 
 Libraries:
 
 - [Flask](https://pypi.org/project/Flask/) - WSGI web application framework
+- [Waitress](https://pypi.org/project/waitress/) - production WSGI server
 - [python-benedict](https://pypi.org/project/python-benedict/) - dict keylist support
 
 ## Todo
 
-- Error pages & handling
+- Makefile, setup automation
 
 ## License
 
