@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>{% block title %}{% endblock %} | flask-bookmarks</title>
+      <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+      <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+   </head>
+   <header>
+      <nav class="navbar fixed-top navbar-dark bg-primary">
+         <a class="navbar-brand" href="https://github.com/Zedeldi/flask-bookmarks">flask-bookmarks</a>
+         <span class="navbar-text">
+            <a href="/">Home</a>
+         </span>
+      </nav>
+   </header>
+   <body class="container" style="padding-top: 70px;">
+      {% block content %}{% endblock %}
+   </body>
+</html>

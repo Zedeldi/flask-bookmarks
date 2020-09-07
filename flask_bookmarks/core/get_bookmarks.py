@@ -22,7 +22,7 @@ Returns bookmarks in JSON or HTML.
 
 import sqlite3, time
 
-from flask import request
+from flask import flash, render_template, request
 from benedict import benedict
 
 from flask_bookmarks import app
@@ -75,7 +75,8 @@ def get_bookmarks():
 				# and: datetime.fromtimestamp(data['dateAdded']/1000000) to convert Unix time
 				# https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR/Reference/PRTime - Mozilla uses microseconds resolution, hence divide by 10^6
 	except sqlite3.OperationalError as e: # DB is probably invalid
-		return "Database operation error ({0}).".format(e)
+		flash("Database operation error ({0}).".format(e))
+		return render_template("error.html") # Handle with error template
 		
 	if use_html:
 		filename="bookmarks{0}.html".format(time.strftime('-%Y-%m-%d', time.localtime()))

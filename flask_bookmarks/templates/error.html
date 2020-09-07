@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+   {% with messages = get_flashed_messages() %}
+      {% if messages %}
+         {% for message in messages %}
+            <div class="alert alert-danger">
+               <strong>Oh snap!</strong> {{ message }}
+            </div>
+         {% endfor %}
+      {% endif %}
+   {% endwith %}
+{% endblock %}
