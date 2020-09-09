@@ -1,4 +1,5 @@
 DATABASE = "places.sqlite"
+USE_FIREFOX_HTML = False
 
 # Builtin Flask config
 JSON_SORT_KEYS = False

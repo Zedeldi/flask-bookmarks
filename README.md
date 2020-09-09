@@ -32,7 +32,7 @@ Libraries:
 
 ## Usage
 
-At `/`, bookmarks will be returned in JSON, by default. Pass `?html=True` as a query in the URL to format as HTML.
+At `/`, bookmarks will be returned in JSON, by default. Pass `?html=True` as a query in the URL to format as HTML. Set `USE_FIREFOX_HTML` in `config.py` to output HTML in a similar format as Firefox's exports, else it will extend `layout.html`.
 
 To add bookmarks through the web interface, go to `/add`.
 

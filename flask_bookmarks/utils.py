@@ -83,7 +83,7 @@ def create_folder(title, parent=3): # Default parent is toolbar for Firefox's sa
 	return c.execute('SELECT max(id) FROM moz_bookmarks').fetchone()[0]
 
 ## EXPORT FUNCTIONS ##
-def export_html(d, fd):
+def export_html(d, fd, n=1):
 	"""
 	Writes HTML to fd with values from d, following the syntax of Firefox's export.
 	
@@ -92,7 +92,10 @@ def export_html(d, fd):
 	Parameters:
 	d (dict): dictionary to process
 	fd (file): open file descriptor
+	n (int): current depth of recursion for heading size (max = 6)
 	"""
+	if app.config['USE_FIREFOX_HTML']: n = 3 # Match Firefox's uniform heading size
+	elif n > 6: n = 6
 	for key in d:
 		try: fd.write("""
 	<DT><A HREF="{0}" 
@@ -104,7 +107,7 @@ def export_html(d, fd):
 		except KeyError: # d[key] is a folder
 			fd.write("""
 </DL><p>
-<DT><H3>{0}</H3>
+<DT><H{0}>{1}</H{0}>
 <DL><p>
-			""".format(key))
-			export_html(d[key], fd) # Recursively parse children
+			""".format(n, key))
+			export_html(d[key], fd, n+1) # Recursively parse children

@@ -83,6 +83,7 @@ def get_bookmarks():
 		with open(filename, 'w+') as fd: # Create file descriptor outside of recursive function, overwrites if exists
 			export_html(bookmarks, fd) # Recursively parse JSON and write HTML to file
 			fd.seek(0)
-			return fd.read() # Return the HTML
+			if app.config['USE_FIREFOX_HTML']: return fd.read() # Return the HTML
+			else: return render_template("get_bookmarks.html", bookmarks=fd.read())
 	
 	return bookmarks # Else, return the JSON/dict
