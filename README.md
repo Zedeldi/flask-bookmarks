@@ -24,17 +24,17 @@ e.g.
  - `gunicorn -b 127.0.0.1:8080 flask_bookmarks:app`
  - `waitress-serve --listen=127.0.0.1:8080 flask_bookmarks:app`
 
-## Usage
-
-At `/`, bookmarks will be returned in JSON, by default. Pass `?html=True` as a query in the URL to format as HTML.
-
-To add bookmarks through the web interface, go to `/add`.
-
 Libraries:
 
 - [Flask](https://pypi.org/project/Flask/) - WSGI web application framework
 - [Waitress](https://pypi.org/project/waitress/) - production WSGI server
 - [python-benedict](https://pypi.org/project/python-benedict/) - dict keylist support
+
+## Usage
+
+At `/`, bookmarks will be returned in JSON, by default. Pass `?html=True` as a query in the URL to format as HTML.
+
+To add bookmarks through the web interface, go to `/add`.
 
 ## Todo
 
