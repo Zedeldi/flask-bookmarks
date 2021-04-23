@@ -24,15 +24,18 @@ from flask import flash, render_template
 
 from flask_bookmarks import app
 
+
 @app.errorhandler(403)
 def forbidden(e):
 	flash("You are not allowed to do that!")
 	return render_template("error.html"), 403
 
+
 @app.errorhandler(404)
 def page_not_found(e):
 	flash("That page does not exist!")
 	return render_template("error.html"), 404
+
 
 @app.errorhandler(500)
 def internal_server_error(e):
