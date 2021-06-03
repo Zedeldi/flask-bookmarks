@@ -10,10 +10,11 @@ PORT = 8080
 THREADS = 4  # For waitress
 
 if __name__ == "__main__":
-	check_database()
-	try:
-		if sys.argv[1] == "waitress":
-			from waitress import serve
-			serve(app, host=HOST, port=PORT, threads=THREADS)
-	except IndexError:
-		app.run(host=HOST, port=PORT)
+    check_database()
+    try:
+        if sys.argv[1] == "waitress":
+            from waitress import serve
+
+            serve(app, host=HOST, port=PORT, threads=THREADS)
+    except IndexError:
+        app.run(host=HOST, port=PORT)
