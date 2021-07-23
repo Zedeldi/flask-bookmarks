@@ -1,42 +1,26 @@
-# flask-bookmarks
-# Copyright (C) 2020  Zack Didcott
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-"""
-flask_bookmarks.core.get_bookmarks
-
-Returns bookmarks in JSON or HTML.
-"""
+"""Return bookmarks in JSON or HTML."""
 
 import sqlite3
 import time
+from typing import Union
 
-from flask import flash, render_template, request
 from benedict import benedict
+from flask import Blueprint, current_app, flash, render_template, request
 
-from flask_bookmarks import app
 from flask_bookmarks.utils import export_html
 
+get_page = Blueprint("get_page", __name__)
 
-@app.route("/")
-def get_bookmarks():
+
+@get_page.route("/")
+def get_bookmarks() -> Union[str, benedict]:
     """Return bookmarks in JSON or HTML format."""
     use_html = request.args.get("html", default=False)
+    if isinstance(use_html, str):
+        use_html = use_html.lower() in ("true", "yes", "y", "on", "1")
 
     try:
-        conn = sqlite3.connect(app.config["DATABASE"])
+        conn = sqlite3.connect(current_app.config["DATABASE"])
         # Get dictionary-like objects for readability
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -108,7 +92,7 @@ def get_bookmarks():
         with open(filename, "w+") as fd:
             export_html(bookmarks, fd)  # Recursively parse JSON and write HTML to file
             fd.seek(0)
-            if app.config["USE_FIREFOX_HTML"]:
+            if current_app.config["USE_FIREFOX_HTML"]:
                 return fd.read()  # Return the HTML
             else:
                 return render_template("get_bookmarks.html", bookmarks=fd.read())

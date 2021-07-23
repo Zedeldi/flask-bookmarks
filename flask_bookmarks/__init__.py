@@ -1,5 +1,6 @@
 """
-flask-bookmarks
+flask-bookmarks - A web interface for handling Firefox's bookmarks.
+
 Copyright (C) 2020  Zack Didcott
 
 This program is free software: you can redistribute it and/or modify
@@ -18,7 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Flask
 
+from flask_bookmarks.core import blueprints
+
 app = Flask(__name__)
 app.config.from_object("config")
+app.app_context().push()
 
-from flask_bookmarks import core
+for blueprint in blueprints:
+    app.register_blueprint(blueprint)

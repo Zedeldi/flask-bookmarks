@@ -1,43 +1,28 @@
-# flask-bookmarks
-# Copyright (C) 2020  Zack Didcott
+"""Define handlers for HTTP error codes."""
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+from typing import Tuple
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+from flask import Blueprint, flash, render_template
 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-"""
-flask_bookmarks.core.errors
-
-Defines handlers for HTTP error codes.
-"""
-
-from flask import flash, render_template
-
-from flask_bookmarks import app
+error_pages = Blueprint("error_pages", __name__)
 
 
-@app.errorhandler(403)
-def forbidden(e):
+@error_pages.app_errorhandler(403)
+def forbidden(e) -> Tuple[str, int]:
+    """Error 403 (forbidden) handler."""
     flash("You are not allowed to do that!")
     return render_template("error.html"), 403
 
 
-@app.errorhandler(404)
-def page_not_found(e):
+@error_pages.app_errorhandler(404)
+def page_not_found(e) -> Tuple[str, int]:
+    """Error 404 (not found) handler."""
     flash("That page does not exist!")
     return render_template("error.html"), 404
 
 
-@app.errorhandler(500)
-def internal_server_error(e):
+@error_pages.app_errorhandler(500)
+def internal_server_error(e) -> Tuple[str, int]:
+    """Error 500 (internal error) handler."""
     flash("An unexpected error has occurred.")
     return render_template("error.html"), 500

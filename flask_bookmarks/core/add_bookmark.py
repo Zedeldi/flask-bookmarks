@@ -1,46 +1,27 @@
-# flask-bookmarks
-# Copyright (C) 2020  Zack Didcott
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-"""
-flask_bookmarks.core.add_bookmark
-
-Processes request to add bookmark, creating folders where necessary.
-"""
+"""Process request to add bookmark, creating folders where necessary."""
 
 import sqlite3
 import time
 
-from flask import request, render_template
+from flask import Blueprint, current_app, render_template, request
 
-from flask_bookmarks import app
-from flask_bookmarks.utils import get_next_position, create_folder
+from flask_bookmarks.utils import create_folder, get_next_position
+
+add_page = Blueprint("add_page", __name__)
 
 
-@app.route("/add", methods=["POST", "GET"])
-def add_bookmark():
-    """Handler for adding bookmarks and creating parents."""
+@add_page.route("/add", methods=["POST", "GET"])
+def add_bookmark() -> str:
+    """Handle adding bookmarks and creating parents."""
     status = None
     if request.method == "POST":
         try:
-            conn = sqlite3.connect(app.config["DATABASE"])
+            conn = sqlite3.connect(current_app.config["DATABASE"])
             c = conn.cursor()
 
             # Remove leading/trailing slashes
             path = request.form["folder"].strip("/").split("/")
-            title = (path[0],)
+            title = path[0]
             # Currently, this returns the first occurrence of 'title'
             # If there are multiple folders with the same name, you should
             # specify an explicit path
@@ -55,7 +36,7 @@ def add_bookmark():
                     WHERE fk IS NULL
                     AND title = ?
                     """,
-                    title,
+                    (title,),
                 ).fetchone()[0]
             except TypeError:
                 # Initial folder does not exist - create it

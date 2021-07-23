@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Check database and start server.
+
+Use waitress if specified.
+"""
+
 import sys
+from sqlite3 import DatabaseError
 
 from flask_bookmarks import app
 from flask_bookmarks.utils import check_database
@@ -10,7 +17,11 @@ PORT = 8080
 THREADS = 4  # For waitress
 
 if __name__ == "__main__":
-    check_database()
+    try:
+        check_database()
+    except DatabaseError as e:
+        print(e)
+        sys.exit(1)
     try:
         if sys.argv[1] == "waitress":
             from waitress import serve

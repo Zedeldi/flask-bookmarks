@@ -1,35 +1,22 @@
-# flask-bookmarks
-# Copyright (C) 2020  Zack Didcott
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-"""
-flask_bookmarks.utils
-
-Various helper functions for database operations and processing.
-"""
+"""Various helper functions for database operations and processing."""
 
 import sqlite3
 import time
-from flask_bookmarks import app
+from typing import TextIO
+
+from benedict import benedict
+from flask import current_app
 
 
 # DATABASE FUNCTIONS #
-def check_database():
-    """Check that the database has necessary tables."""
+def check_database() -> None:
+    """
+    Check that the database has necessary tables.
+
+    Raise DatabaseError if access failed, or database is malformed.
+    """
     try:
-        conn = sqlite3.connect(app.config["DATABASE"])
+        conn = sqlite3.connect(current_app.config["DATABASE"])
         c = conn.cursor()
         if (
             len(
@@ -45,20 +32,18 @@ def check_database():
             )
             != 2
         ):  # Check that moz_bookmarks and moz_places exist
-            print("Invalid database.")
-            exit(1)
+            raise sqlite3.DatabaseError("Invalid database.")
     except sqlite3.OperationalError as e:
         # Permissions?
-        print("Database operation error ({0}).".format(e))
-        exit(1)
+        raise sqlite3.DatabaseError("Database operation error ({0}).".format(e))
     else:
         # All is okay :)
         conn.close()
 
 
-def get_next_position(parent):
+def get_next_position(parent: int) -> int:
     """Return the next available position in parent."""
-    conn = sqlite3.connect(app.config["DATABASE"])
+    conn = sqlite3.connect(current_app.config["DATABASE"])
     c = conn.cursor()
     t = (parent,)
     # Get the next position for bookmark within folder
@@ -74,18 +59,18 @@ def get_next_position(parent):
     return position + 1 if position is not None else 0
 
 
-def create_folder(title, parent=3):
+def create_folder(title: str, parent: int = 3) -> int:
     """
-    Creates a folder (fk == NULL) at the next available position in parent.
+    Create a folder (fk == NULL) at the next available position in parent.
 
     Parameters:
-    title (string): name for the folder
-    parent (int): where the folder is located (default: 3)
+        title: name for the folder
+        parent: where the folder is located (default: 3)
 
     Returns:
-    int: id of the new folder
+        id of the new folder
     """
-    conn = sqlite3.connect(app.config["DATABASE"])
+    conn = sqlite3.connect(current_app.config["DATABASE"])
     c = conn.cursor()
     position = get_next_position(parent)
 
@@ -108,20 +93,19 @@ def create_folder(title, parent=3):
 
 
 # EXPORT FUNCTIONS #
-def export_html(d, fd, n=1):
+def export_html(d: benedict, fd: TextIO, n: int = 1) -> None:
     """
-    Writes HTML to fd with values from d, following the syntax of
-    Firefox's export.
+    Write HTML to fd with values from d, following the syntax of Firefox.
 
     Recursively walks through dictionary to distinguish between folders
     and bookmarks.
 
     Parameters:
-    d (dict): dictionary to process
-    fd (file): open file descriptor
-    n (int): current depth of recursion for heading size (max = 6)
+        d: dictionary to process
+        fd: open file descriptor
+        n: current depth of recursion for heading size (max = 6)
     """
-    if app.config["USE_FIREFOX_HTML"]:
+    if current_app.config["USE_FIREFOX_HTML"]:
         # Match Firefox's uniform heading size
         n = 3
     elif n > 6:
